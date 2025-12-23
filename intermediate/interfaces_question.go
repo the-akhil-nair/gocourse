@@ -8,6 +8,45 @@ type Speaker interface {
 	Speak() string
 }
 
+type Vehicle interface {
+	Wheels() int
+	IsHeavy() bool
+}
+
+type Car struct{}
+
+type Truck struct{}
+
+type Motorcycle struct{}
+
+func (c Car) Wheels() int {
+	return 4
+}
+
+func (c Car) IsHeavy() bool {
+	return false
+}
+
+func (t Truck) Wheels() int {
+	return 6
+}
+
+func (t Truck) IsHeavy() bool {
+	return true
+}
+
+func (m Motorcycle) Wheels() int {
+	return 2
+}
+
+func (m Motorcycle) IsHeavy() bool {
+	return false
+}
+
+func truckVehicle() Vehicle {
+	return &Truck{}
+}
+
 type Dog struct{}
 
 func (d Dog) Speak() string {
@@ -27,4 +66,8 @@ func main() {
 	s = Speaker(d)
 	fmt.Println(s == d)
 	fmt.Println(s.Speak())
+
+	t := truckVehicle()
+	fmt.Printf("Truck has %d wheels. Is it heavy? %t\n", t.Wheels(), t.IsHeavy())
+	fmt.Printf("Truck %#v\n", t)
 }
