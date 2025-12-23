@@ -15,7 +15,7 @@ func main() {
 	fmt.Println("Specific time:", specificTime)
 
 	// Parse time
-	// Go adds default values for missing components
+	// Go adds default values for missing components and for timezone it uses UTC
 	parsedTime, _ := time.Parse("2006-01-02", "2020-05-01") // Mon Jan 2 15:04:05 MST 2006
 	parsedTime1, _ := time.Parse("06-01-02", "20-05-01")    // Mon Jan 2 15:04:05 MST 2006
 	// Layouts in year didnt matched so will assign default year 0000
