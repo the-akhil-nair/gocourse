@@ -9,8 +9,14 @@ func main() {
 	fmt.Printf("%05d\n", num)
 
 	message := "Hello"
+	// The fixed width is 10 characters and if the string is shorter, it will be padded with spaces.
 	fmt.Printf("|%10s|\n", message)
 	fmt.Printf("|%-10s|\n", message)
+
+	// If the string exceeds the specified width, it will be printed in full without truncation.
+	message3 := "Hello, World!. Welcome to Go string formatting."
+	fmt.Printf("|%10s|\n", message3)
+	fmt.Printf("|%-10s|\n", message3)
 
 	message1 := "Hello \nWorld!"
 	message2 := `Hello \nWorld!`
