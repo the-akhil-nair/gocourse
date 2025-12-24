@@ -15,6 +15,10 @@ var basicsFolder embed.FS
 
 func main() {
 	// embed supports files and folders.
+	// embeded files can not modified at runtime.
+	// The content of the embedded file is available at compile time.
+	// Consider using embed for static files like HTML templates, configuration files, etc.
+	// Consider the size of the binary when embedding large files.
 	fmt.Println("Embedded content:", content)
 	content, err := basicsFolder.ReadFile("basics/hello.txt")
 	if err != nil {
