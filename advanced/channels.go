@@ -18,6 +18,11 @@ func main() {
 	// fmt.Println(receiver)
 
 	go func() {
+		receiver := <-greeting
+		fmt.Println("Received:", receiver)
+	}()
+
+	go func() {
 		greeting <- greetString // blocking because it is continuously trying to receive values, it is ready to receive continuous flow of data.
 		greeting <- "World"
 		for _, e := range "abcde" {
