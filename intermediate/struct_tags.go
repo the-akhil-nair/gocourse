@@ -14,7 +14,7 @@ type Person struct {
 
 func main() {
 
-	// person := Person{FirstName: "Jane", LastName: "", Age: 0}
+	// person := Person{FirstName: "Jane", LastName: "", Age: 0} // If zero value is present for LastName and Age it will be ommitted even though its a legal field.
 	person := Person{FirstName: "Jane", Age: 30}
 
 	jsonData, err := json.Marshal(person)
