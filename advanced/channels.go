@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func channels() {
+func main() {
 
 	//variable := make(chan type) '<-' operator
 	greeting := make(chan string)
@@ -21,8 +21,15 @@ func channels() {
 		greeting <- greetString // blocking because it is continuously trying to receive values, it is ready to receive continuous flow of data.
 		greeting <- "World"
 		for _, e := range "abcde" {
+			// Receiver will wait till sender sends value to channel
+			time.Sleep(1 * time.Second)
 			greeting <- "Alphabet: " + string(e)
 		}
+
+		// receiver can be inside the same goroutine as well
+		// But of no use and program will print End of program.
+		receiver := <-greeting
+		fmt.Println(receiver)
 	}()
 
 	// go func() {
@@ -42,7 +49,7 @@ func channels() {
 	receiver = <-greeting
 	fmt.Println(receiver)
 
-	for range 5 {
+	for range 4 {
 		rcvr := <-greeting
 		fmt.Println(rcvr)
 	}
