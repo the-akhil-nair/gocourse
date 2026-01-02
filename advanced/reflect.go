@@ -35,6 +35,38 @@ func main() {
 	result := method.Call(args)
 	fmt.Println(result[0].Interface())
 	fmt.Println(result[0].String())
+
+	j := map[string]any{
+		"name": "Alice",
+		"age":  30,
+		"school": map[string]any{
+			"name":    "XYZ High School",
+			"address": "123 Main St",
+			"year":    2024,
+		},
+		"grades": []int{90, 85, 88},
+	}
+
+	for key, value := range j {
+		v := reflect.ValueOf(value)
+		// Type: map[string]interface {}, Kind: map
+		// Type: []int, Kind: slice
+		fmt.Printf("Key: %s, Value: %v, Type: %s, Kind: %s\n", key, value, v.Type(), v.Kind())
+
+		if v.Type() == reflect.TypeOf(map[string]any{}) {
+			// Need to convert back to map[string]any to iterate as we cannot iterate reflect.Value directly
+			for k, i := range v.Interface().(map[string]any) {
+				fmt.Println("Map Key:", k, "Map Value:", i)
+			}
+		}
+
+		if v.Kind() == reflect.Slice {
+			for i, _ := range v.Interface().([]int) {
+				fmt.Println("Slice Index:", i, "Slice Value:", v.Index(i).Interface())
+			}
+		}
+	}
+
 }
 
 // Working with Structs and Fields using Reflection
