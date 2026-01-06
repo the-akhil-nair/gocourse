@@ -6,7 +6,7 @@ import (
 )
 
 var allowedOrigins = []string{
-	"http://localhost:3000",
+	"https://localhost:3000",
 	"http://example.com",
 	"https://my-origin-url.com",
 }
