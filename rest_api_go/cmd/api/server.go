@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -98,6 +99,31 @@ func utilityFunction(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Request URL Scheme: ", r.URL.Scheme)
 }
 
+func queryHandler(r *http.Request) {
+	// teachers/{id}
+	// teachers/9
+	// teachers/?key=value&query=search&sortby=email&sortorder=asc
+	// /query?key=value&query=search&sortby=email&sortorder=asc
+	fmt.Println("Teachers Route Method: ", r.URL.Path)
+	path := strings.TrimPrefix(r.URL.Path, "/teachers/")
+	userID := strings.TrimSuffix(path, "/")
+	queryParams := r.URL.Query()
+	sortBy := queryParams.Get("sortby")
+	sortOrder := queryParams.Get("sortorder")
+	key := queryParams.Get("key")
+	query := queryParams.Get("query")
+
+	if sortOrder == "" {
+		sortOrder = "asc"
+	}
+
+	fmt.Println("Query: ", query)
+	fmt.Println("Key: ", key)
+	fmt.Println("User ID: ", userID)
+	fmt.Println("Sort By: ", sortBy)
+	fmt.Println("Sort Order: ", sortOrder)
+}
+
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	// _, err := fmt.Fprint(w, "Serving /\n")
 
@@ -132,32 +158,12 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func teachersHandler(w http.ResponseWriter, r *http.Request) {
-	// teachers/{id}
-	// teachers/9
-	// teachers/?key=value&query=search&sortby=email&sortorder=asc
 	w.Write([]byte("Hello, teachers route.\n"))
 	log.Println("Hello, teachers route.")
 
 	switch r.Method {
 	case http.MethodGet:
-		fmt.Println("Teachers Route Method: ", r.URL.Path)
-		path := strings.TrimPrefix(r.URL.Path, "/teachers/")
-		userID := strings.TrimSuffix(path, "/")
-		queryParams := r.URL.Query()
-		sortBy := queryParams.Get("sortby")
-		sortOrder := queryParams.Get("sortorder")
-		key := queryParams.Get("key")
-		query := queryParams.Get("query")
-
-		if sortOrder == "" {
-			sortOrder = "asc"
-		}
-
-		fmt.Println("Query: ", query)
-		fmt.Println("Key: ", key)
-		fmt.Println("User ID: ", userID)
-		fmt.Println("Sort By: ", sortBy)
-		fmt.Println("Sort Order: ", sortOrder)
+		// queryHandler(r)
 		w.Write([]byte("Hello Get method on Teachers route.\n"))
 		log.Println("Get Method is called.")
 	case http.MethodPost:
@@ -239,16 +245,31 @@ func ExecsHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	port := 3000
 
-	http.HandleFunc("/", rootHandler)
+	cert := "cert.pem"
+	key := "key.pem"
 
-	http.HandleFunc("/teachers/", teachersHandler)
+	mux := http.NewServeMux()
 
-	http.HandleFunc("/students/", studentsHandler)
+	mux.HandleFunc("/", rootHandler)
 
-	http.HandleFunc("/execs/", ExecsHandler)
+	mux.HandleFunc("/teachers/", teachersHandler)
+
+	mux.HandleFunc("/students/", studentsHandler)
+	mux.HandleFunc("/execs/", ExecsHandler)
+
+	tlsConfig := &tls.Config{
+		MinVersion: tls.VersionTLS12,
+	}
 
 	fmt.Println("Server is running on Port: ", port)
-	err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
+
+	server := &http.Server{
+		Addr:      fmt.Sprintf(":%d", port),
+		Handler:   mux,
+		TLSConfig: tlsConfig,
+	}
+
+	err := server.ListenAndServeTLS(cert, key)
 
 	if err != nil {
 		log.Fatalln("Unable to start the server", err)
