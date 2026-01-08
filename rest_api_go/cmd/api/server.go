@@ -238,7 +238,8 @@ func main() {
 
 	fmt.Println("Server is running on Port: ", port)
 
-	multiplexer := mw.Hpp(hppOptions)(rl.RateLimiter(mw.Compression(mw.ResponseTimer(mw.SecurityHeaders(mw.Cors(mux))))))
+	//multiplexer := mw.Hpp(hppOptions)(rl.RateLimiter(mw.Compression(mw.ResponseTimer(mw.SecurityHeaders(mw.Cors(mux))))))
+	multiplexer := mw.Cors(rl.RateLimiter(mw.ResponseTimer(mw.SecurityHeaders(mw.Compression(mw.Hpp(hppOptions)())))))
 
 	server := &http.Server{
 		Addr:      fmt.Sprintf(":%d", port),
