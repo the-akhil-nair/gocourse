@@ -132,30 +132,19 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	// if err != nil {
 	// 	log.Fatalln("Unable to server /")
 	// }
-
-	w.Write([]byte("Hello, root route.\n"))
-	log.Println("Hello, root route.")
-
 	switch r.Method {
 	case http.MethodGet:
 		w.Write([]byte("Hello Get method on root route.\n"))
-		log.Println("Get Method is called.")
 	case http.MethodPost:
 		w.Write([]byte("Hello Post method on root route.\n"))
-		log.Println("Post Method is called.")
 	case http.MethodPut:
 		w.Write([]byte("Hello Put method on root route.\n"))
-		log.Println("Put Method is called.")
 	case http.MethodPatch:
 		w.Write([]byte("Hello Put method on root route.\n"))
-		log.Println("Put Method is called.")
 	case http.MethodDelete:
 		w.Write([]byte("Hello Delete method on root route.\n"))
-		log.Println("Delete Method is called.")
 	default:
 		w.Write([]byte("Unknown HTTP Method is called."))
-		log.Fatalln("Unknown HTTP Method is called.")
-
 	}
 }
 
@@ -167,23 +156,16 @@ func teachersHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		// queryHandler(r)
 		w.Write([]byte("Hello Get method on Teachers route.\n"))
-		log.Println("Get Method is called.")
 	case http.MethodPost:
 		w.Write([]byte("Hello Post method on Teachers route.\n"))
-		log.Println("Post Method is called.")
 	case http.MethodPut:
 		w.Write([]byte("Hello Put method on Teachers route.\n"))
-		log.Println("Put Method is called.")
 	case http.MethodPatch:
 		w.Write([]byte("Hello Put method on Teachers route.\n"))
-		log.Println("Put Method is called.")
 	case http.MethodDelete:
 		w.Write([]byte("Hello Delete method on Teachers route.\n"))
-		log.Println("Delete Method is called.")
 	default:
 		w.Write([]byte("Unknown HTTP Method is called."))
-		log.Fatalln("Unknown HTTP Method is called.")
-
 	}
 }
 
@@ -196,51 +178,34 @@ func studentsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		w.Write([]byte("Hello Get method on Students route.\n"))
-		log.Println("Get Method is called.")
 	case http.MethodPost:
 		w.Write([]byte("Hello Post method on Students route.\n"))
-		log.Println("Post Method is called.")
 	case http.MethodPut:
 		w.Write([]byte("Hello Put method on Students route.\n"))
-		log.Println("Put Method is called.")
 	case http.MethodPatch:
 		w.Write([]byte("Hello Put method on Students route.\n"))
-		log.Println("Put Method is called.")
 	case http.MethodDelete:
 		w.Write([]byte("Hello Delete method on Students route.\n"))
-		log.Println("Delete Method is called.")
 	default:
 		w.Write([]byte("Unknown HTTP Method is called."))
-		log.Fatalln("Unknown HTTP Method is called.")
-
 	}
 
 }
 
 func ExecsHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello, Executives route.\n"))
-	log.Println("Hello, Executives route.")
-
 	switch r.Method {
 	case http.MethodGet:
 		w.Write([]byte("Hello Get method on Executives route.\n"))
-		log.Println("Get Method is called.")
 	case http.MethodPost:
 		w.Write([]byte("Hello Post method on Executives route.\n"))
-		log.Println("Post Method is called.")
 	case http.MethodPut:
 		w.Write([]byte("Hello Put method on Executives route.\n"))
-		log.Println("Put Method is called.")
 	case http.MethodPatch:
 		w.Write([]byte("Hello Put method on Executives route.\n"))
-		log.Println("Put Method is called.")
 	case http.MethodDelete:
 		w.Write([]byte("Hello Delete method on Executives route.\n"))
-		log.Println("Delete Method is called.")
 	default:
 		w.Write([]byte("Unknown HTTP Method is called."))
-		log.Fatalln("Unknown HTTP Method is called.")
-
 	}
 }
 
@@ -264,11 +229,20 @@ func main() {
 	}
 
 	rl := mw.NewRateLimiter(5, time.Minute)
+	hppOptions := mw.HPPOptions{
+		CheckQuery:                  true,
+		CheckBody:                   true,
+		CheckBodyOnlyForContentType: "application/x-www-form-urlencoded",
+		Whitelist:                   []string{"sortBy", "sortOrder", "name", "age", "class"},
+	}
+
 	fmt.Println("Server is running on Port: ", port)
+
+	multiplexer := mw.Hpp(hppOptions)(rl.RateLimiter(mw.Compression(mw.ResponseTimer(mw.SecurityHeaders(mw.Cors(mux))))))
 
 	server := &http.Server{
 		Addr:      fmt.Sprintf(":%d", port),
-		Handler:   rl.RateLimiter(mw.Compression(mw.ResponseTimer(mw.SecurityHeaders(mw.Cors(mux))))),
+		Handler:   multiplexer,
 		TLSConfig: tlsConfig,
 	}
 
