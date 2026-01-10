@@ -1,3 +1,14 @@
+package utils
+
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"restapi/internal/models"
+	"strings"
+)
+
 func utilityFunction(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("This is a utility function.")
 	// Parse the form data
@@ -25,7 +36,7 @@ func utilityFunction(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Body Data: ", string(body))
 
 	decoder := json.NewDecoder(r.Body)
-	var user User
+	var user models.User
 	err = decoder.Decode(&user)
 	if err != nil {
 		http.Error(w, "Unable to parse JSON body", http.StatusBadRequest)

@@ -5,12 +5,27 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	mw "restapi/internal/api/middlewares"
+	"restapi/internal/repository/sqlconnect"
 	"restapi/internal/router"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	port := 3000
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Error in loading .env file", err)
+	}
+
+	db, err := sqlconnect.ConnectDB()
+
+	if err != nil {
+		panic(fmt.Sprintf("Unable to open Databse - %e", err))
+	}
+
+	log.Println(db)
 
 	cert := "cert.pem"
 	key := "key.pem"
@@ -27,7 +42,7 @@ func main() {
 	// 	Whitelist:                   []string{"sortBy", "sortOrder", "name", "age", "class"},
 	// }
 
-	fmt.Println("Server is running on Port: ", port)
+	fmt.Println("Server is running on Port ", os.Getenv("API_PORT"))
 
 	//multiplexer := mw.Hpp(hppOptions)(rl.RateLimiter(mw.Compression(mw.ResponseTimer(mw.SecurityHeaders(mw.Cors(mux))))))
 	//multiplexer := mw.Cors(rl.RateLimiter(mw.ResponseTimer(mw.SecurityHeaders(mw.Compression(mw.Hpp(hppOptions)())))))
@@ -35,12 +50,12 @@ func main() {
 	multiplexer := mw.SecurityHeaders(router.Router())
 
 	server := &http.Server{
-		Addr:      fmt.Sprintf(":%d", port),
+		Addr:      os.Getenv("API_PORTl"),
 		Handler:   multiplexer,
 		TLSConfig: tlsConfig,
 	}
 
-	err := server.ListenAndServeTLS(cert, key)
+	err = server.ListenAndServeTLS(cert, key)
 
 	if err != nil {
 		log.Fatalln("Unable to start the server", err)
