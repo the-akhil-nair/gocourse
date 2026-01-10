@@ -42,7 +42,7 @@ func main() {
 	// 	Whitelist:                   []string{"sortBy", "sortOrder", "name", "age", "class"},
 	// }
 
-	fmt.Println("Server is running on Port ", os.Getenv("API_PORT"))
+	fmt.Println("Server is running on Port", os.Getenv("API_PORT"))
 
 	//multiplexer := mw.Hpp(hppOptions)(rl.RateLimiter(mw.Compression(mw.ResponseTimer(mw.SecurityHeaders(mw.Cors(mux))))))
 	//multiplexer := mw.Cors(rl.RateLimiter(mw.ResponseTimer(mw.SecurityHeaders(mw.Compression(mw.Hpp(hppOptions)())))))
@@ -50,7 +50,7 @@ func main() {
 	multiplexer := mw.SecurityHeaders(router.Router())
 
 	server := &http.Server{
-		Addr:      os.Getenv("API_PORTl"),
+		Addr:      os.Getenv("API_PORT"),
 		Handler:   multiplexer,
 		TLSConfig: tlsConfig,
 	}
