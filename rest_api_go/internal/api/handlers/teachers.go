@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	mo "restapi/internal/models"
@@ -45,6 +46,14 @@ func init() {
 	nextID++
 }
 
+func isValidSortOrder(order string) bool {
+	return order == "asc" || order == "desc"
+}
+
+func isValidSortParam(param string) bool {
+	return param == "first_name" || param == "last_name" || param == "email" || param == "class" || param == "subject"
+}
+
 func getTeachersHandler(w http.ResponseWriter, r *http.Request) {
 
 	db, err := sqlconnect.ConnectDB()
@@ -60,23 +69,18 @@ func getTeachersHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := strings.TrimSuffix(path, "/")
 
 	if idStr == "" {
-		firstName := r.URL.Query().Get("first_name")
-		lastName := r.URL.Query().Get("last_name")
 
 		query := "SELECT id, first_name, last_name, email, class, subject FROM teachers WHERE 1=1"
 
 		var args []interface{}
 
-		if firstName != "" {
-			query += " AND first_name = ?"
-			args = append(args, firstName)
-		}
+		query, args = addFilter(r, query, args)
 
-		if lastName != "" {
-			query += " AND last_name = ?"
-			args = append(args, lastName)
-		}
+		// .Get will return single value i.e. string. If multiple values are there then first value will be reurned.
+		// without .Get all the values will be returned and will be of type slice.
+		sortParams := r.URL.Query()["sortby"]
 
+		query = addSorting(sortParams, query)
 		rows, err := db.Query(query, args...)
 		if err != nil {
 			http.Error(w, "Database query Error.", http.StatusInternalServerError)
@@ -136,6 +140,46 @@ func getTeachersHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-type", "application/json")
 
 	json.NewEncoder(w).Encode(teacher)
+}
+
+func addSorting(sortParams []string, query string) string {
+	if len(sortParams) > 0 {
+		query += " ORDER BY "
+		for i, param := range sortParams {
+			parts := strings.Split(param, ":")
+			if len(parts) != 2 {
+				continue
+			}
+			field, order := parts[0], parts[1]
+			if !isValidSortOrder(order) || !isValidSortParam(field) {
+				continue
+			}
+			if i > 0 {
+				query += ","
+			}
+			query += " " + field + " " + order
+		}
+	}
+	return query
+}
+
+func addFilter(r *http.Request, query string, args []interface{}) (string, []interface{}) {
+	params := map[string]string{
+		"first_name": "first_name",
+		"last_name":  "last_name",
+		"email":      "email",
+		"class":      "class",
+		"subject":    "subject",
+	}
+
+	for param, dbField := range params {
+		value := r.URL.Query().Get(param)
+		if value != "" {
+			query += fmt.Sprintf(" AND %s = ?", dbField)
+			args = append(args, value)
+		}
+	}
+	return query, args
 }
 
 func postTeacherHanddler(w http.ResponseWriter, r *http.Request) {
