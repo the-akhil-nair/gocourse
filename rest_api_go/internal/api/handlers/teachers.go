@@ -62,12 +62,42 @@ func getTeachersHandler(w http.ResponseWriter, r *http.Request) {
 	if idStr == "" {
 		firstName := r.URL.Query().Get("first_name")
 		lastName := r.URL.Query().Get("last_name")
-		teacherList := make([]mo.Teacher, 0, len(teachers))
-		for _, teacher := range teachers {
-			if (firstName == "" || teacher.FirstName == firstName) && (lastName == "" || teacher.LastName == lastName) {
-				teacherList = append(teacherList, teacher)
-			}
+
+		query := "SELECT id, first_name, last_name, email, class, subject FROM teachers WHERE 1=1"
+
+		var args []interface{}
+
+		if firstName != "" {
+			query += " AND first_name = ?"
+			args = append(args, firstName)
 		}
+
+		if lastName != "" {
+			query += " AND last_name = ?"
+			args = append(args, lastName)
+		}
+
+		rows, err := db.Query(query, args...)
+		if err != nil {
+			http.Error(w, "Database query Error.", http.StatusInternalServerError)
+			return
+		}
+
+		defer rows.Close()
+
+		teacherList := make([]mo.Teacher, 0)
+
+		for rows.Next() {
+			var teacher mo.Teacher
+			err := rows.Scan(&teacher.ID, &teacher.FirstName, &teacher.LastName, &teacher.Email, &teacher.Class, &teacher.Subject)
+			if err != nil {
+				log.Println(err)
+				http.Error(w, "Error Scanning Database Results", http.StatusInternalServerError)
+				return
+			}
+			teacherList = append(teacherList, teacher)
+		}
+
 		response := struct {
 			Status string       `json:"status"`
 			Count  int          `json:"count"`
@@ -81,6 +111,8 @@ func getTeachersHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
 		json.NewEncoder(w).Encode(response)
+
+		return
 	}
 
 	id, err := strconv.Atoi(idStr)
