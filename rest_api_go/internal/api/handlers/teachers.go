@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -46,6 +47,15 @@ func init() {
 
 func getTeachersHandler(w http.ResponseWriter, r *http.Request) {
 
+	db, err := sqlconnect.ConnectDB()
+
+	if err != nil {
+		http.Error(w, "Can not connect to database", http.StatusInternalServerError)
+		return
+	}
+
+	defer db.Close()
+
 	path := strings.TrimPrefix(r.URL.Path, "/teachers/")
 	idStr := strings.TrimSuffix(path, "/")
 
@@ -80,14 +90,20 @@ func getTeachersHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teacher, exist := teachers[id]
-
-	if !exist {
-		http.Error(w, "Teacher Not found!", http.StatusNotFound)
+	var teacher mo.Teacher
+	err = db.QueryRow("SELECT id, first_name, last_name, email, class, subject FROM teachers WHERE id = ?", id).Scan(&teacher.ID, &teacher.FirstName, &teacher.LastName, &teacher.Email, &teacher.Class, &teacher.Subject)
+	if err == sql.ErrNoRows {
+		http.Error(w, "Teacher not found", http.StatusNotFound)
 		return
-	} else {
-		json.NewEncoder(w).Encode(teacher)
+	} else if err != nil {
+		log.Println(err)
+		http.Error(w, "Database query Error", http.StatusInternalServerError)
+		return
 	}
+
+	w.Header().Set("Content-type", "application/json")
+
+	json.NewEncoder(w).Encode(teacher)
 }
 
 func postTeacherHanddler(w http.ResponseWriter, r *http.Request) {
